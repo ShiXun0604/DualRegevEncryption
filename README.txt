@@ -1,0 +1,1 @@
+此處程式碼實作Dual Regev Encryption
