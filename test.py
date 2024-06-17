@@ -1,10 +1,12 @@
-import multiprocessing
-from DualRegev.Cipher import Crypto
-from DualRegev import PROC_SETTING
-
-
-pk = Crypto.LBDRKey().generate_key()
+def test():
+    from DualRegev.Cipher import Crypto
 
 
 
+    key_obj = Crypto.LBDRKey().generate_key()
+    print(key_obj.extract_key())
+
+
+
+test()
 

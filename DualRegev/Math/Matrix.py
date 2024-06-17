@@ -6,7 +6,13 @@ from DualRegev.__init__ import PROC_SETTING
 
 
 
+__all__ = ['IntMatrix', 'PROC_SETTING']
+
+
 class IntMatrix():
+    """
+    此為實做整數矩陣的class，資料結構用慢速python內建雙層list，搭配multiprocessing讓執行快一些@@
+    """
     def __init__(self, data: list[list[int]] = [], maxlen: int = None) -> None:
         self.IntMatrix = data
         self.rows = len(data)
@@ -72,16 +78,37 @@ class IntMatrix():
         # 回傳結果
         return IntMatrix(result)
     
-    
-    # for印出當前的儲存的結果
+
     def __str__(self) -> str:
+        return '\n'.join(' '.join(str(element) for element in row) for row in self.IntMatrix)
+    
+
+    @staticmethod
+    def str_to_matrix(str_data) -> IntMatrix:
+        """
+        回傳
+        """
+        data = str_data.split('\n')
+        
+        for i in range(len(data)):
+            data[i] = data[i].split(' ') 
+            for j in range(len(data[i])):
+               data[i][j] = int(data[i][j])
+        
+        return IntMatrix(data)
+
+    # 工整的印出當前的儲存的結果
+    def print_str(self) -> None:
+        s = '\n'.join('  '.join(f'{element:{self.maxlen}}' for element in row) for row in self.IntMatrix)
+        print(s)
+        """
         s = ''
         for row in self.IntMatrix:
             for element in row:
                 s += '{:{width}}  '.format(element, width=self.maxlen)
             s += '\n'
-        return s.strip('\n')
-        # return '\n'.join('  '.join(f'{element:{self.maxlen}}' for element in row) for row in self.IntMatrix)
+        print(s.strip('\n'))
+        """
     
 
     # 回傳隨機分布矩陣
@@ -89,11 +116,3 @@ class IntMatrix():
     def rand_normal_distribute_matrix(size: tuple[int, int], rng: tuple[int, int]) -> IntMatrix:
         result = [[randint(*rng) for _ in range(size[1])] for __ in range(size[0])]
         return IntMatrix(result)
-        
-
-
-# 用來測試的區間
-if __name__ == '__main__':
-    m1 = IntMatrix.rand_normal_distribute_matrix((5,10), (0,1000))
-    print(m1)
-    print(m1 % 5)

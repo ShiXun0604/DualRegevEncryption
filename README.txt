@@ -1,1 +1,16 @@
-此處程式碼實作Dual Regev Encryption
+預估時程：
+    一個禮拜~兩個禮拜完成
+
+學習目標、遊戲規則：
+    1. 實作Dual Regev Encryption
+    2. 為了練習python語法和multiprocessing，實作過程不使用numpy(以後要用numpy重寫一次)
+    3. 練習標準的程式碼風格、docstring
+    4. 學習如何寫library
+    5. 學習如何在github上顯示漂亮的README.txt
+
+學習筆記：
+    1. numpy高效的原因是因為使用了C語言實現，且陣列使用連續布建(python使用linked list)，使得造訪時間更快速
+
+
+
+Document：
