@@ -1,58 +1,80 @@
-
-from DualRegev.Cipher import Crypto
-from DualRegev.IO import Converter
-from DualRegev import Config
-from DualRegev.Math.Matrix import IntMatrix
-import random
+global DATA
+DATA = '0x7c091f4c34ef21bac81f4d406f4e9cd1'
 
 
 
 def AES_key_gen():
+    import random
+
+
     data = ''.join(str(random.randint(0, 1)) for _ in range(128))
     return hex(int(data, 2))
 
 
-def key_gen():
+
+def key_generation_demo():
+    from DualRegev.Cipher import Crypto
+    from DualRegev.Config import config
+
+    # 設定安全參數
+    config.set_parameter(n=90, m=100, q=241)
+
+    # 生成公鑰、私鑰
     key_obj = Crypto.LBDRKey().generate_key()
-    sk = key_obj.extract_private_key()
-    pk = key_obj.extract_key()
+    private_key = key_obj.extract_private_key()
+    public_key = key_obj.extract_key()
 
+    # 將公鑰、私鑰寫入檔案
     with open('sk.pem', 'wb') as f:
-        f.write(sk)
-
+        f.write(private_key)
     with open('pk.pem', 'wb') as f:
-        f.write(pk)
+        f.write(public_key)
 
 
-def matrix_test():
-    m1 = IntMatrix().rand_normal_distribute_matrix((2,3), (1,100))
-    m2 = IntMatrix().rand_normal_distribute_matrix((2,3), (1,100))
-    m1.print_str()
-    m2.print_str()
-    print(m1+m2)
+def encryption_demo():
+    from DualRegev.Cipher import Crypto
+    from DualRegev.IO import Converter
 
+    # 創建加密工具物件
+    crypto_obj = Crypto.LBDRCrypt()
 
-def test():
-    data = "0b11001011"
-    data = Converter.binary_to_bytes(data)
-    print(data)
-
-    with open('sk.pem', 'rb') as f:
-        sk = f.read()
+    # 載入公鑰
     with open('pk.pem', 'rb') as f:
         pk = f.read()
+    crypto_obj.import_key(pk)
 
-    cipher = Crypto.LBDRCrypt()
-    cipher.import_key(sk)
-    enc_data = cipher.encrypt(data)
-    dec_data = cipher.decrypt(enc_data)
-    print(dec_data)
+    # 加密訊息
+    data = DATA
+    byte_data = Converter.hex_to_bytes(data)
+
+    enc_data = crypto_obj.encrypt(byte_data)
+
+    # 紀錄加密訊息
+    with open('cipher_text.bin', 'wb') as f:
+        f.write(enc_data)
+
+
+def decryption_demo():
+    from DualRegev.Cipher import Crypto
+    from DualRegev.IO import Converter
+
+    # 創建加密工具物件
+    crypto_obj = Crypto.LBDRCrypt()
+
+    # 載入私鑰
+    with open('sk.pem', 'rb') as f:
+        sk = f.read()
+    crypto_obj.import_key(sk)
+
+    # 讀取加密訊息
+    with open('cipher_text.bin', 'rb') as f:
+        enc_data = f.read()
     
+    # 解密訊息
+    byte_data = crypto_obj.decrypt(enc_data)
+    data = Converter.bytes_to_hex(byte_data)
 
-def test2():
-    data = "0b11001101"
-    a = data.encode()
-    print(a)
+    print(data)
 
-
-test()
+encryption_demo()
+decryption_demo()

@@ -2,7 +2,7 @@ import multiprocessing
 
 
 
-__all__ = ['multiprocEnv', 'cryptParameter', 'MultiprocEnv', 'CryptParameter']
+__all__ = ['MultiprocEnv', 'CryptParameter', 'config']
 
 MODE_LIST = {
     'qter_0' : 0,
@@ -67,6 +67,12 @@ class CryptParameter():
         return ' '.join(str(i) for i in data)
 
 
+
 # 設定檔的class物件
-multiprocEnv = MultiprocEnv()
-cryptParameter = CryptParameter(20, 30, 241)
+class config:
+    multiprocEnv = MultiprocEnv()
+    #cryptParameter = CryptParameter(20, 30, 241)
+    cryptParameter = None
+
+    def set_parameter(n: int, m: int , q: int, rng: tuple=None) -> None:
+        config.cryptParameter = CryptParameter(n, m, q, rng)

@@ -13,15 +13,36 @@ __all__ = [
 
 # bytes <-> str: 0x...
 def bytes_to_hex(byte_data):
+    if not isinstance(byte_data, (bytes, bytearray)):
+        error_message = "Input must be bytes or bytearray."
+        raise ValueError(error_message)
+    
     hex_str = byte_data.hex()
     
     return '0x' + hex_str
 
-def hex_to_bytes(data):
-    hex_str = data[2:]
-    byte_data = bytes.fromhex(hex_str)
 
+def hex_to_bytes(hex_str):
+    if not isinstance(hex_str, str):
+        error_message = "Input must be a string."
+        raise ValueError(error_message)
+    
+    if hex_str.startswith('0x'):
+        hex_str = hex_str[2:]
+    
+    if len(hex_str) % 2 != 0:
+        error_message = "Hex to bytes needs even length of hex string."
+        raise ValueError(error_message)
+    
+    try:
+        byte_data = bytes.fromhex(hex_str)
+    except ValueError as e:
+        error_message = "Invalid hex string: {hex_str}".format(hex_str)
+        raise ValueError(error_message)
+    
     return byte_data
+
+
 
 # bytes <-> str: 0b...
 def bytes_to_binary(byte_data):
@@ -33,6 +54,7 @@ def bytes_to_binary(byte_data):
     binary_str = binary_str.zfill(original_length)
     return '0b' + binary_str
 
+
 def binary_to_bytes(data):
     binary_str = data[2:]
 
@@ -41,4 +63,3 @@ def binary_to_bytes(data):
 
     byte_data = integer_value.to_bytes(byte_length, byteorder='big')
     return byte_data
-

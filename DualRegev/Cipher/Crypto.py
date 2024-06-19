@@ -31,11 +31,21 @@ class LBDRKey():
     """
     測試測試
     """
-    def __init__(self, para: CryptParameter = cryptParameter) -> None:
-        self.para = para
+    def __init__(self, para: CryptParameter = config.cryptParameter) -> None:
         self.public_key = (None, None)
         self.__private_key = None
     
+    @property
+    def para(self) -> CryptParameter:
+        return config.cryptParameter
+    
+    @para.setter
+    def para(self, data):
+        config.cryptParameter = data
+    
+    # 回傳私鑰
+    def get_private_key(self) -> IntMatrix:
+        return self.__private_key
     
     # 生成公、私鑰對
     @staticmethod
@@ -96,11 +106,6 @@ class LBDRKey():
         ext_str += ext_data + b'\n-----END DUAL REGEV PRIVATE KEY-----'
 
         return ext_str
-    
-
-    # 回傳私鑰
-    def get_private_key(self) -> IntMatrix:
-        return self.__private_key
 
 
     # 載入金鑰
@@ -142,7 +147,7 @@ class LBDRKey():
 
 
 class LBDRCrypt(LBDRKey):
-    def __init__(self, para: CryptParameter = cryptParameter) -> None:
+    def __init__(self, para: CryptParameter = config.cryptParameter) -> None:
         super().__init__(para)
         self.__MU = 0
         self.sigma = 2
@@ -161,8 +166,8 @@ class LBDRCrypt(LBDRKey):
         q = self.para.ext_module()        
 
         # 加密開始
-        enc_data_list = []       # list[tuple(IntMatrix, int), ...]
         enc_data = ''
+        #print(len(bin_data)-2)  # 檢查加密資料bit數
         for bit in bin_data[2:]:
             # 生成s、x
             s_size = (u.rows, 1)
@@ -172,11 +177,12 @@ class LBDRCrypt(LBDRKey):
             
             # 計算密文
             c_0 = (A.trans*s + x) % q
-            c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2)*int(bit)) ) % q
+            c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2) * int(bit)) ) % q
             
             enc_data += str(c_0) + '#' + str(c_1) + '$'
         
         enc_data = enc_data.strip('$').encode()
+        enc_data = base64.b64encode(enc_data)
         return enc_data
 
     
@@ -188,6 +194,7 @@ class LBDRCrypt(LBDRKey):
         qutr_q = int(q/4)
 
         # 解密
+        enc_data = base64.b64decode(enc_data)
         enc_data = enc_data.decode()
         enc_data_list = enc_data.split('$')
         data = '0b'
@@ -207,9 +214,6 @@ class LBDRCrypt(LBDRKey):
         
         return Converter.binary_to_bytes(data)
 
-    
-
-    
 
             
         
