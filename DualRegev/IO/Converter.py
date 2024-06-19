@@ -12,7 +12,7 @@ __all__ = [
 
 
 # bytes <-> str: 0x...
-def bytes_to_hex(byte_data):
+def bytes_to_hex(byte_data: bytes) -> str:
     if not isinstance(byte_data, (bytes, bytearray)):
         error_message = "Input must be bytes or bytearray."
         raise ValueError(error_message)
@@ -22,7 +22,7 @@ def bytes_to_hex(byte_data):
     return '0x' + hex_str
 
 
-def hex_to_bytes(hex_str):
+def hex_to_bytes(hex_str: str) -> bytes:
     if not isinstance(hex_str, str):
         error_message = "Input must be a string."
         raise ValueError(error_message)
@@ -45,7 +45,7 @@ def hex_to_bytes(hex_str):
 
 
 # bytes <-> str: 0b...
-def bytes_to_binary(byte_data):
+def bytes_to_binary(byte_data: bytes) -> str:
     integer_value = int.from_bytes(byte_data, byteorder='big')
     
     binary_str = bin(integer_value)[2:]
@@ -55,7 +55,7 @@ def bytes_to_binary(byte_data):
     return '0b' + binary_str
 
 
-def binary_to_bytes(data):
+def binary_to_bytes(data: str) -> bytes:
     binary_str = data[2:]
 
     integer_value = int(binary_str, 2)

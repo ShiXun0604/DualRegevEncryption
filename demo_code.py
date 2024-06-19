@@ -1,11 +1,5 @@
-global DATA
-DATA = '0x7c091f4c34ef21bac81f4d406f4e9cd1'
-
-
-
 def AES_key_gen():
     import random
-
 
     data = ''.join(str(random.randint(0, 1)) for _ in range(128))
     return hex(int(data, 2))
@@ -31,6 +25,7 @@ def key_generation_demo():
         f.write(public_key)
 
 
+
 def encryption_demo():
     from DualRegev.Cipher import Crypto
     from DualRegev.IO import Converter
@@ -44,7 +39,7 @@ def encryption_demo():
     crypto_obj.import_key(pk)
 
     # 加密訊息
-    data = DATA
+    data = '0x7c091f4c34ef21bac81f4d406f4e9cd1'
     byte_data = Converter.hex_to_bytes(data)
 
     enc_data = crypto_obj.encrypt(byte_data)
@@ -52,6 +47,7 @@ def encryption_demo():
     # 紀錄加密訊息
     with open('cipher_text.bin', 'wb') as f:
         f.write(enc_data)
+
 
 
 def decryption_demo():
@@ -76,5 +72,6 @@ def decryption_demo():
 
     print(data)
 
-encryption_demo()
-decryption_demo()
+
+
+# data = AES_key_gen()
