@@ -1,29 +1,17 @@
-預估時程：
-    一個禮拜~兩個禮拜完成
-    start at：2024/6/14
+Abstract：
+    * 此library採用Craig Gentry等人在2007年提出的非對稱式加密演算法，此演算法的安全性為基於lattice base的困難問題，可以抵抗量子電腦破密攻擊。演算法詳細過程請見此篇論文的7-1小節。
+    https://eprint.iacr.org/2007/432
+    * 由於基於lattice base的演算法的通病就是加解密運算成本非常高，實務上請務必搭配其他高效演算法(例如AES128、AES256)使用。
+    * 作者為了練習程式技巧，library中所有矩陣乘法都沒有使用numpy，所以效率很差哦ㄎㄎ。
 
-學習目標、遊戲規則：
-    1. 實作Dual Regev Encryption
-    2. 為了練習python語法和multiprocessing，實作過程不使用numpy(以後要用numpy重寫一次)
-    3. 練習標準的程式碼風格、docstring
-    4. 學習如何寫library
-    5. 學習如何在github上顯示漂亮的README.txt
-
-風格：
-    1. raise風格
-        error_message = '...'
-        raise TypeError(error_message)
-
-學習筆記：
-    1. numpy高效的原因是因為使用了C語言實現，且陣列使用連續布建(python使用linked list)，使得造訪時間更快速
-    2. 在__init__裡面的__all__是為了支援 import * 使用
-
-所有的外部引用package:
-    __future__
-    random
-    multiprocessing
-    base64
+開發版本：
+    python 3.9.1
 
 
+外部引用：
+    __future__、random、multiprocessing、base64
 
-Document：
+
+注意事項：
+    1. 請把DualRegev放入site-package內或是path找的到的地方。
+    2. 為了優化加密效率，對於待加密訊息的資料型態轉換請閱讀DualRegev/IO/README.txt的指引進行資料型態轉換。

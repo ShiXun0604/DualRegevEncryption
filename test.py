@@ -33,7 +33,9 @@ def matrix_test():
 
 
 def test():
-    data = "0b1"
+    data = "0b11001011"
+    data = Converter.binary_to_bytes(data)
+    print(data)
 
     with open('sk.pem', 'rb') as f:
         sk = f.read()
@@ -42,7 +44,15 @@ def test():
 
     cipher = Crypto.LBDRCrypt()
     cipher.import_key(sk)
-    cipher.encrypt(data)
+    enc_data = cipher.encrypt(data)
+    dec_data = cipher.decrypt(enc_data)
+    print(dec_data)
+    
+
+def test2():
+    data = "0b11001101"
+    a = data.encode()
+    print(a)
 
 
 test()

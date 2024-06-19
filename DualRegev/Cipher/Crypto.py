@@ -148,59 +148,69 @@ class LBDRCrypt(LBDRKey):
         self.sigma = 2
     
 
-    def encrypt(self, data: bytes | str) -> bytes:
-        # 將輸入資料轉為2進制資料
-        # bin_data沒有前綴'0b'
+    def encrypt(self, data: bytes) -> bytes:
         if isinstance(data, bytes):
             bin_data = Converter.bytes_to_binary(data)
-        elif isinstance(data, str):
-            if data.startswith('0b'):
-                bin_data = data[2:]
-            elif data.startswith('0x'):
-                bin_data = Converter.hex_to_bin(data)[2:]
         else:
             error_message = 'Invalid data input.'
             raise ValueError(error_message)
         
-        # 參數
+        # 載入參數
         A = self.public_key[0]
         u = self.public_key[1]
         q = self.para.ext_module()        
 
         # 加密開始
-        enc_data = []       # list[tuple(IntMatrix, int), ...]
-        for bit in bin_data:
-            print(bit)
+        enc_data_list = []       # list[tuple(IntMatrix, int), ...]
+        enc_data = ''
+        for bit in bin_data[2:]:
             # 生成s、x
             s_size = (u.rows, 1)
             x_size = (A.cols, 1)
             s = IntMatrix.rand_normal_distribute_matrix(size=s_size, rng=self.para.ext_range())
             x = IntMatrix.gauss_distribute_matrix(size=x_size, mu=self.__MU, sigma=2)
             
-            # 加密
+            # 計算密文
             c_0 = (A.trans*s + x) % q
             c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2)*int(bit)) ) % q
-            enc_data.append((c_0, c_1))
-
             
+            enc_data += str(c_0) + '#' + str(c_1) + '$'
+        
+        enc_data = enc_data.strip('$').encode()
         return enc_data
 
     
-    def decrypt(self, data: bytes) -> bytes:
+    def decrypt(self, enc_data: bytes) -> bytes:
         # 載入私鑰、參數
         sk = self.get_private_key()
         q = self.para.ext_module() 
-        half_q  = int(q/2)   
+        half_q = int(q/2)
+        qutr_q = int(q/4)
 
         # 解密
-        for c_0, c_1 in data:
+        enc_data = enc_data.decode()
+        enc_data_list = enc_data.split('$')
+        data = '0b'
+        for ele in enc_data_list:
+            c_0, c_1 = ele.split('#')
+
+            c_0 = IntMatrix.str_to_matrix(c_0)
+            c_1 = int(c_1)
+            
             u_prime = (c_1 - ((sk.trans * c_0).IntMatrix)[0][0]) % q
-            print(u_prime)
+            #print(u_prime, sep=' ')  # 檢查sigma是否太大
+
+            if abs(u_prime - half_q) < qutr_q:
+                data += '1'
+            else:
+                data += '0'
+        
+        return Converter.binary_to_bytes(data)
+
+    
+
+    
+
             
         
 
-
-
-
-
-    
