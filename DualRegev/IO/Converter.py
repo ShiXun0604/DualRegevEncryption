@@ -42,11 +42,3 @@ def binary_to_bytes(data):
     byte_data = integer_value.to_bytes(byte_length, byteorder='big')
     return byte_data
 
-
-if __name__ == '__main__':
-    data = "0b11001101"
-    print(data)
-    a = binary_to_bytes(data)
-    print(a)
-    b = bytes_to_strbinary(a)
-    print(b)
