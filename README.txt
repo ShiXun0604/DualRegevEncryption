@@ -1,5 +1,6 @@
 預估時程：
     一個禮拜~兩個禮拜完成
+    start at：2024/6/14
 
 學習目標、遊戲規則：
     1. 實作Dual Regev Encryption
@@ -8,8 +9,20 @@
     4. 學習如何寫library
     5. 學習如何在github上顯示漂亮的README.txt
 
+風格：
+    1. raise風格
+        error_message = '...'
+        raise TypeError(error_message)
+
 學習筆記：
     1. numpy高效的原因是因為使用了C語言實現，且陣列使用連續布建(python使用linked list)，使得造訪時間更快速
+    2. 在__init__裡面的__all__是為了支援 import * 使用
+
+所有的外部引用package:
+    __future__
+    random
+    multiprocessing
+    base64
 
 
 

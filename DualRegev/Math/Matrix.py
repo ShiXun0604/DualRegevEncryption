@@ -1,23 +1,36 @@
 # External
 from __future__ import annotations
-from random import randint
+import random
+
 # Internal
-from DualRegev.__init__ import PROC_SETTING
+from DualRegev.Config import *
 
 
 
-__all__ = ['IntMatrix', 'PROC_SETTING']
+__all__ = ['IntMatrix']
 
 
 class IntMatrix():
     """
     此為實做整數矩陣的class，資料結構用慢速python內建雙層list，搭配multiprocessing讓執行快一些@@
     """
-    def __init__(self, data: list[list[int]] = [], maxlen: int = None) -> None:
+    def __init__(self, data: list[list[int]] = []) -> None:
         self.IntMatrix = data
-        self.rows = len(data)
-        self.cols = len(data[0]) if self.rows > 0 else 0
-        self.maxlen = maxlen if maxlen else self.__find_max_len()
+        #self.rows = len(data)
+        #self.cols = len(data[0]) if self.rows > 0 else 0
+        #self.maxlen = maxlen if maxlen else self.__find_max_len()
+
+    @property
+    def rows(self) -> int:
+        return len(self.IntMatrix)
+    
+    @property
+    def cols(self) -> int:
+        return len(self.IntMatrix[0]) if self.rows > 0 else 0
+    
+    @property
+    def maxlen(self) -> int:
+        return self.__find_max_len()
 
 
     def __find_max_len(self) -> int:
@@ -27,6 +40,20 @@ class IntMatrix():
                 max_length = max(max_length, len(str(element)))
         return int(max_length)
     
+
+    # 定義加法運算
+    def __add__(self, other: IntMatrix) -> IntMatrix:
+        if not isinstance(other, IntMatrix):
+            error_message = 'Invalid type input.'
+            raise TypeError(error_message)
+        
+        if self.rows != other.rows or self.cols != other.cols:
+            error_message = 'The dimensions of the two matrices are different and cannot be added.'
+            raise ValueError(error_message)
+        
+        result = [[self.IntMatrix[j][i] + other.IntMatrix[j][i] for i in range(self.cols)] for j in range(self.rows)]
+        return IntMatrix(result)
+
 
     # 定義乘法運算
     def __rmul__(self, other: int) -> IntMatrix:
@@ -79,8 +106,26 @@ class IntMatrix():
         return IntMatrix(result)
     
 
+    # 定義 ==
+    def __eq__(self,  other: object) -> bool:
+        return self.IntMatrix == other.IntMatrix
+
+
+    # 定義轉為文字相關
     def __str__(self) -> str:
         return '\n'.join(' '.join(str(element) for element in row) for row in self.IntMatrix)
+    
+
+    # 定義轉置矩陣
+    @property
+    def trans(self) -> IntMatrix:
+        result = [[self.IntMatrix[i][j] for i in range(self.rows)] for j in range(self.cols)]
+        return IntMatrix(result)
+    
+
+    # 回傳維度大小
+    def dsize(self) -> str:
+        return '{}x{}'.format(self.rows, self.cols)
     
 
     @staticmethod
@@ -114,5 +159,12 @@ class IntMatrix():
     # 回傳隨機分布矩陣
     @staticmethod
     def rand_normal_distribute_matrix(size: tuple[int, int], rng: tuple[int, int]) -> IntMatrix:
-        result = [[randint(*rng) for _ in range(size[1])] for __ in range(size[0])]
+        result = [[random.randint(*rng) for _ in range(size[1])] for __ in range(size[0])]
+        return IntMatrix(result)
+
+
+    # 回傳高斯分布矩陣
+    @staticmethod
+    def gauss_distribute_matrix(size: tuple[int, int], mu: int = 0, sigma: float | int = 10) -> IntMatrix:
+        result = [[round(random.gauss(mu, sigma)) for _ in range(size[1])] for __ in range(size[0])]
         return IntMatrix(result)
