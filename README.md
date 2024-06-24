@@ -1,6 +1,6 @@
 
 ##  簡介
-* 此responsiry實現Craig Gentry等人提出的非對稱式加密演算法，此演算法的安全性為基於lattice base的困難問題，可以抵抗量子電腦破密攻擊。演算法詳細過程請見[此篇論文]( https://eprint.iacr.org/2007/432)的7-1小節。  
+* 此repository實現Craig Gentry等人提出的非對稱式加密演算法，此演算法的安全性為基於lattice base的困難問題，可以抵抗量子電腦破密攻擊。演算法詳細過程請見[此篇論文](https://eprint.iacr.org/2007/432)的7-1小節。  
 * 由於基於lattice base的演算法有運算成本非常高的通病（因為有相當多的矩陣乘法），實務上請務必搭配其他高效演算法(例如AES128、AES256)使用。
 * 我為了練習程式技巧，library中所有矩陣乘法通通沒有用numpy，所以效率很差哦ㄎㄎ。
 
@@ -10,7 +10,7 @@
 
 ## 如何使用
 
- ### 1. 生成公鑰、私鑰對
+### 1. 生成公鑰、私鑰對
 &emsp;&emsp;需要載入兩個module，其中Crypto包含加解密所需要的類別、並且config加解密中所需要的參數必須透過config進行設定。
 ```python
 from  DualRegev.Cipher  import  Crypto

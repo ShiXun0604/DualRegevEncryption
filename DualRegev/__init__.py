@@ -3,7 +3,7 @@ from .Config import *
 
 
 __all__ = [
-    "Performance", 
+    "Performance",
     "CryptParameter",
     "Cipher",
     "Math",

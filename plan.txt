@@ -17,3 +17,8 @@
 學習筆記：
     1. numpy高效的原因是因為使用了C語言實現，且陣列使用連續布建(python使用linked list)，使得造訪時間更快速
     2. 在__init__裡面的__all__是為了支援 import * 使用
+    3. 參數傳遞的過程中如果傳遞class則會傳遞記憶體位置，不會進行複製
+    4. 進行multiprocessing時最好傳遞數據不要傳遞class
+
+
+有誰可以告訴我為啥pool變多後執行時間沒變短QAQ

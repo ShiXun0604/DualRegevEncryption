@@ -1,5 +1,7 @@
 # External
 from __future__ import annotations
+from time import time
+import multiprocessing as mp
 import random
 
 # Internal
@@ -72,14 +74,44 @@ class IntMatrix():
         # init result
         result = []
         
-        # 乘法運算
-        if isinstance(other, IntMatrix):  # 矩陣*矩陣
-            result = [[0 for _ in range(other.cols)] for __ in range(self.rows)]
-            for i in range(self.rows):
-                for j in range(other.cols):
-                    for k in range(self.cols):
-                        result[i][j] += self.IntMatrix[i][k] * other.IntMatrix[k][j]  # 需要進行multiprocessing
-        else:  # 整數*矩陣 or 矩陣*整數
+        # 矩陣*矩陣
+        if isinstance(other, IntMatrix):
+            IS_MULTIPROC = config.multiprocEnv.is_multiproc
+
+            # 有multiprocessing
+            if IS_MULTIPROC:
+                # 建立multiprocessing任務 (m1 * m2)
+                tasks = []  # 每個task算一行
+                m2_trans = other.trans.IntMatrix
+                for i in range(self.rows):
+                    m1_row = self.IntMatrix[i]
+                    tasks.append((m1_row, m2_trans, i))
+                
+                # multiprocessing
+                start_time = time()
+                with mp.Pool(6) as pool:
+                    return_data = pool.starmap(self._mutiproc_MmulM_row, tasks)
+
+                    pool.close()
+                    pool.join()
+                exec_time = time() - start_time
+                print('執行時間：{:.4f}秒'.format(exec_time))
+
+                # 處理結果
+                result = [None for _ in range(self.rows)]
+                for i, result_row in return_data:
+                    result[i] = result_row
+            # 沒有multiprocessing
+            else:
+                result = [[0 for _ in range(other.cols)] for __ in range(self.rows)]
+                self.print_str()
+                other.print_str()
+                for i in range(self.rows):
+                    for j in range(other.cols):
+                        for k in range(self.cols):
+                            result[i][j] += self.IntMatrix[i][k] * other.IntMatrix[k][j]
+        # 整數*矩陣 or 矩陣*整數
+        else:  
             result = [[0 for _ in range(self.cols)] for __ in range(self.rows)]
             for i in range(self.rows):
                 for j in range(self.cols):
@@ -88,6 +120,18 @@ class IntMatrix():
         # 回傳結果
         return IntMatrix(result)
     
+
+    
+    @staticmethod
+    def _mutiproc_MmulM_row(m1_row: list, m2_trans: list[list], i: int) -> tuple[int, list]:
+        result_row = []
+
+        for j in range(len(m2_trans)):
+            m2_col = m2_trans[j]
+            result_row_ele = sum([m1_row[k]*m2_col[k] for k in range(len(m1_row))])
+            result_row.append(result_row_ele)
+        return i, result_row 
+
     
     # 定義模除運算
     def __mod__(self, other: int) -> IntMatrix:
