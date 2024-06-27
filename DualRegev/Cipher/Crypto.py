@@ -27,7 +27,9 @@ __all__ = ['LBDRKey', 'LBDRCrypt']
 """
 
 
-def encrypt_task(task_bin_data, A, u, q, range, MU, sigma):
+
+# for multiprocessing
+def encrypt_task(task_bin_data: list[str], A: IntMatrix, u: IntMatrix, q: int, range: tuple, MU: int, sigma: int) -> str:
     task_enc_data = ''
     for bit in task_bin_data:
         # 生成s、x
@@ -42,6 +44,7 @@ def encrypt_task(task_bin_data, A, u, q, range, MU, sigma):
         
         task_enc_data += str(c_0) + '#' + str(c_1) + '$'
     return task_enc_data
+
 
 
 class LBDRKey():
@@ -85,6 +88,11 @@ class LBDRKey():
     
     # 回傳pem格式的公鑰
     def extract_key(self) -> bytes:
+        # 除錯
+        if self.public_key == (None, None):
+            error_message = 'No public key import/generate in class.'
+            raise KeyExtractionError(error_message)
+        
         A = self.public_key[0]
         u = self.public_key[1]
         para = self.para
@@ -105,6 +113,11 @@ class LBDRKey():
 
     # 回傳pem格式的私鑰
     def extract_private_key(self) -> bytes:
+        # 除錯
+        if self.public_key == (None, None):
+            error_message = 'No private key import/generate in class.'
+            raise KeyExtractionError(error_message)
+        
         A = self.public_key[0]
         u = self.public_key[1]
         x = self.__private_key
@@ -126,6 +139,7 @@ class LBDRKey():
 
 
     # 載入金鑰
+    @error_catcher(KeyImportError, 'Error occure while import key.')
     def import_key(self, data: bytes) -> None:
         base64_data_list = data.decode().split('\n')
 
@@ -183,42 +197,28 @@ class LBDRCrypt(LBDRKey):
         u = self.public_key[1]
         q = self.para.ext_module()
 
+        if not A or not u or not q:
+            error_message = 'Encryption requires public key. No public key imported.'
+            raise NoPublicKeyError(error_message)
+
         # 加密開始
-        """
-        def encrypt_task(task_bin_data):
-            task_enc_data = ''
-            for bit in task_bin_data:
-                # 生成s、x
-                s_size = (u.rows, 1)
-                x_size = (A.cols, 1)
-                s = IntMatrix.rand_normal_distribute_matrix(size=s_size, rng=self.para.ext_range())
-                x = IntMatrix.gauss_distribute_matrix(size=x_size, mu=self.__MU, sigma=2)
-                
-                # 計算密文
-                c_0 = (A.trans*s + x) % q
-                c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2) * int(bit)) ) % q
-                
-                task_enc_data += str(c_0) + '#' + str(c_1) + '$'
-            return task_enc_data
-        
-        encrypt_task(task_bin_data, A, u, q, range, MU, sigma)
-        """
-        # multiprocessing
         task_data_list = String.split_string(bin_data, 3)
         tasks = []
         for ele in task_data_list:
             tasks.append((ele, A, u, q, self.para.ext_range(), self.__MU, self.sigma))
-            
-        with multiprocessing.Pool(4) as pool:
+
+        # multiprocessing
+        PROC_CNT = config.multiprocEnv.used_cpu_count
+        with multiprocessing.Pool(PROC_CNT) as pool:
             return_data = pool.starmap(encrypt_task, tasks)
 
             pool.close()
             pool.join()
 
+        # 合併結果
         enc_data = ''
         for ele in return_data:
             enc_data += ele
-        #enc_data = encrypt_task(bin_data[:128]) + encrypt_task(bin_data[128:])
         enc_data = enc_data.strip('$').encode()
 
         # 將明文的長度以及hash值寫入最前面
@@ -235,7 +235,7 @@ class LBDRCrypt(LBDRKey):
     def decrypt(self, enc_data: bytes) -> bytes:
         # 載入私鑰、參數
         sk = self.get_private_key()
-        q = self.para.ext_module() 
+        q = self.para.ext_module()
         half_q = int(q/2)
         qutr_q = int(q/4)
 

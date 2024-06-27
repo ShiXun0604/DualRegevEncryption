@@ -14,14 +14,11 @@ __all__ = ['IntMatrix']
 
 class IntMatrix():
     """
-    此為實做整數矩陣的class，資料結構用慢速python內建雙層list，搭配multiprocessing讓執行快一些@@
+    此為實做整數矩陣的class
     """
     def __init__(self, data: list[list[int]] = []) -> None:
         self.IntMatrix = data
-        #self.rows = len(data)
-        #self.cols = len(data[0]) if self.rows > 0 else 0
-        #self.maxlen = maxlen if maxlen else self.__find_max_len()
-
+        
     @property
     def rows(self) -> int:
         return len(self.IntMatrix)
@@ -34,6 +31,10 @@ class IntMatrix():
     def maxlen(self) -> int:
         return self.__find_max_len()
 
+    @property
+    def trans(self) -> IntMatrix:
+        result = [[self.IntMatrix[i][j] for i in range(self.rows)] for j in range(self.cols)]
+        return IntMatrix(result)
 
     def __find_max_len(self) -> int:
         max_length = 0
@@ -76,35 +77,11 @@ class IntMatrix():
         
         # 矩陣*矩陣
         if isinstance(other, IntMatrix):
-            IS_MULTIPROC = config.multiprocEnv.is_multiproc
-            # 失敗的multiprocessing
-            if False:  
-                # 建立multiprocessing任務 (m1 * m2)
-                tasks = []  # 每個task算一行
-                m2_trans = other.trans.IntMatrix
-                for i in range(self.rows):
-                    m1_row = self.IntMatrix[i]
-                    tasks.append((m1_row, m2_trans, i))
-                
-                # multiprocessing
-                with mp.Pool(2) as pool:
-                    return_data = pool.starmap(self._mutiproc_MmulM_row, tasks)
-
-                    pool.close()
-                    pool.join()
-
-                # 處理結果
-                result = [None for _ in range(self.rows)]
-                for i, result_row in return_data:
-                    result[i] = result_row
-            # 沒有multiprocessing
-            else:
-                result = [[0 for _ in range(other.cols)] for __ in range(self.rows)]
-
-                for i in range(self.rows):
-                    for j in range(other.cols):
-                        for k in range(self.cols):
-                            result[i][j] += self.IntMatrix[i][k] * other.IntMatrix[k][j]
+            result = [[0 for _ in range(other.cols)] for __ in range(self.rows)]
+            for i in range(self.rows):
+                for j in range(other.cols):
+                    for k in range(self.cols):
+                        result[i][j] += self.IntMatrix[i][k] * other.IntMatrix[k][j]
         # 整數*矩陣 or 矩陣*整數
         else:  
             result = [[0 for _ in range(self.cols)] for __ in range(self.rows)]
@@ -115,18 +92,6 @@ class IntMatrix():
         # 回傳結果
         return IntMatrix(result)
     
-
-    
-    @staticmethod
-    def _mutiproc_MmulM_row(m1_row: list, m2_trans: list[list], i: int) -> tuple[int, list]:
-        result_row = []
-
-        for j in range(len(m2_trans)):
-            m2_col = m2_trans[j]
-            result_row_ele = sum([m1_row[k]*m2_col[k] for k in range(len(m1_row))])
-            result_row.append(result_row_ele)
-        return i, result_row 
-
     
     # 定義模除運算
     def __mod__(self, other: int) -> IntMatrix:
@@ -147,19 +112,14 @@ class IntMatrix():
 
     # 定義 ==
     def __eq__(self,  other: object) -> bool:
+        if not isinstance(other, IntMatrix):
+            return False
         return self.IntMatrix == other.IntMatrix
 
 
     # 定義轉為文字相關
     def __str__(self) -> str:
         return '\n'.join(' '.join(str(element) for element in row) for row in self.IntMatrix)
-    
-
-    # 定義轉置矩陣
-    @property
-    def trans(self) -> IntMatrix:
-        result = [[self.IntMatrix[i][j] for i in range(self.rows)] for j in range(self.cols)]
-        return IntMatrix(result)
     
 
     # 回傳維度大小

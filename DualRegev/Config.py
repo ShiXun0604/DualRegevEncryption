@@ -8,17 +8,21 @@ __all__ = ['MultiprocEnv', 'CryptParameter', 'config']
 
 class MultiprocEnv():
     def __init__(self) -> None:
-        self.is_multiproc = False
+        self.is_multiproc = True
         self.ENV_CPU_COUNT = multiprocessing.cpu_count()
-        self.__used_cpu_count = 2
-
-
-    def get_used_cpu(self) -> int:
-        return self.__used_cpu_count
+        self.__used_cpu_count = int(multiprocessing.cpu_count()/2)
     
 
     def set_used_cpu(self, num: int) -> None:
         self.__used_cpu_count = num
+    
+
+    @property
+    def used_cpu_count(self) -> int:
+        if self.is_multiproc:
+            return self.__used_cpu_count
+        else:
+            return 1
 
 
 
@@ -52,12 +56,7 @@ class CryptParameter():
 # 設定的class物件
 class config:
     multiprocEnv = MultiprocEnv()
-    cryptParameter = None
+    cryptParameter = CryptParameter(n=128, m=256, q=16349)
 
     def set_parameter(n: int, m: int , q: int, rng: tuple=None) -> None:
         config.cryptParameter = CryptParameter(n, m, q, rng)
-
-
-
-# default
-config.set_parameter(n=256, m=512, q=16349)
