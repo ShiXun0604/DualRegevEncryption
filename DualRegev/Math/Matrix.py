@@ -77,9 +77,8 @@ class IntMatrix():
         # 矩陣*矩陣
         if isinstance(other, IntMatrix):
             IS_MULTIPROC = config.multiprocEnv.is_multiproc
-
-            # 有multiprocessing
-            if IS_MULTIPROC:
+            # 失敗的multiprocessing
+            if False:  
                 # 建立multiprocessing任務 (m1 * m2)
                 tasks = []  # 每個task算一行
                 m2_trans = other.trans.IntMatrix
@@ -88,14 +87,11 @@ class IntMatrix():
                     tasks.append((m1_row, m2_trans, i))
                 
                 # multiprocessing
-                start_time = time()
-                with mp.Pool(6) as pool:
+                with mp.Pool(2) as pool:
                     return_data = pool.starmap(self._mutiproc_MmulM_row, tasks)
 
                     pool.close()
                     pool.join()
-                exec_time = time() - start_time
-                print('執行時間：{:.4f}秒'.format(exec_time))
 
                 # 處理結果
                 result = [None for _ in range(self.rows)]
@@ -104,8 +100,7 @@ class IntMatrix():
             # 沒有multiprocessing
             else:
                 result = [[0 for _ in range(other.cols)] for __ in range(self.rows)]
-                self.print_str()
-                other.print_str()
+
                 for i in range(self.rows):
                     for j in range(other.cols):
                         for k in range(self.cols):

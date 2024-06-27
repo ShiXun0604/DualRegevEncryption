@@ -1,11 +1,12 @@
 # Extrnl
 from __future__ import annotations
-import base64
+import base64, hashlib, multiprocessing
 # Intrnl_Lvl
 from DualRegev.Config import *
 # Intrnl_Lv2
 from DualRegev.Math.Matrix import IntMatrix
-from DualRegev.IO import Converter
+from DualRegev.IO import Converter, String
+from DualRegev.IO.Error import *
 
 
 
@@ -25,6 +26,22 @@ __all__ = ['LBDRKey', 'LBDRCrypt']
     4. list資料間使用'$'隔開
 """
 
+
+def encrypt_task(task_bin_data, A, u, q, range, MU, sigma):
+    task_enc_data = ''
+    for bit in task_bin_data:
+        # 生成s、x
+        s_size = (u.rows, 1)
+        x_size = (A.cols, 1)
+        s = IntMatrix.rand_normal_distribute_matrix(size=s_size, rng=range)
+        x = IntMatrix.gauss_distribute_matrix(size=x_size, mu=MU, sigma=sigma)
+        
+        # 計算密文
+        c_0 = (A.trans*s + x) % q
+        c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2) * int(bit)) ) % q
+        
+        task_enc_data += str(c_0) + '#' + str(c_1) + '$'
+    return task_enc_data
 
 
 class LBDRKey():
@@ -150,12 +167,13 @@ class LBDRCrypt(LBDRKey):
     def __init__(self, para: CryptParameter = config.cryptParameter) -> None:
         super().__init__(para)
         self.__MU = 0
-        self.sigma = 2
+        self.sigma = 20
     
 
     def encrypt(self, data: bytes) -> bytes:
         if isinstance(data, bytes):
-            bin_data = Converter.bytes_to_binary(data)
+            bin_data = Converter.bytes_to_binary(data)[2:]  # 去掉0x
+            #print(len(bin_data))  # 檢查加密資料bit數
         else:
             error_message = 'Invalid data input.'
             raise ValueError(error_message)
@@ -163,26 +181,54 @@ class LBDRCrypt(LBDRKey):
         # 載入參數
         A = self.public_key[0]
         u = self.public_key[1]
-        q = self.para.ext_module()        
+        q = self.para.ext_module()
 
         # 加密開始
-        enc_data = ''
-        #print(len(bin_data)-2)  # 檢查加密資料bit數
-        for bit in bin_data[2:]:
-            # 生成s、x
-            s_size = (u.rows, 1)
-            x_size = (A.cols, 1)
-            s = IntMatrix.rand_normal_distribute_matrix(size=s_size, rng=self.para.ext_range())
-            x = IntMatrix.gauss_distribute_matrix(size=x_size, mu=self.__MU, sigma=2)
-            
-            # 計算密文
-            c_0 = (A.trans*s + x) % q
-            c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2) * int(bit)) ) % q
-            
-            enc_data += str(c_0) + '#' + str(c_1) + '$'
+        """
+        def encrypt_task(task_bin_data):
+            task_enc_data = ''
+            for bit in task_bin_data:
+                # 生成s、x
+                s_size = (u.rows, 1)
+                x_size = (A.cols, 1)
+                s = IntMatrix.rand_normal_distribute_matrix(size=s_size, rng=self.para.ext_range())
+                x = IntMatrix.gauss_distribute_matrix(size=x_size, mu=self.__MU, sigma=2)
+                
+                # 計算密文
+                c_0 = (A.trans*s + x) % q
+                c_1 = ( ((u.trans*s).IntMatrix)[0][0] + (int(q/2) * int(bit)) ) % q
+                
+                task_enc_data += str(c_0) + '#' + str(c_1) + '$'
+            return task_enc_data
         
+        encrypt_task(task_bin_data, A, u, q, range, MU, sigma)
+        """
+        # multiprocessing
+        task_data_list = String.split_string(bin_data, 3)
+        tasks = []
+        for ele in task_data_list:
+            tasks.append((ele, A, u, q, self.para.ext_range(), self.__MU, self.sigma))
+            
+        with multiprocessing.Pool(4) as pool:
+            return_data = pool.starmap(encrypt_task, tasks)
+
+            pool.close()
+            pool.join()
+
+        enc_data = ''
+        for ele in return_data:
+            enc_data += ele
+        #enc_data = encrypt_task(bin_data[:128]) + encrypt_task(bin_data[128:])
         enc_data = enc_data.strip('$').encode()
+
+        # 將明文的長度以及hash值寫入最前面
+        hash_value = '0x' + hashlib.sha256(data).hexdigest()
+        hash_value = Converter.hex_to_bytes(hash_value)
+        enc_data = hash_value + enc_data
+
+        # base64編碼
         enc_data = base64.b64encode(enc_data)
+
         return enc_data
 
     
@@ -193,26 +239,54 @@ class LBDRCrypt(LBDRKey):
         half_q = int(q/2)
         qutr_q = int(q/4)
 
-        # 解密
+        # 若沒有私鑰,則不能解密
+        if not sk:
+            error_message = 'Decryption requires private key. No private key imported.'
+            raise NoPrivateKeyError(error_message)
+        # 若資料結構錯誤,則不能解密
+        if not isinstance(enc_data, bytes):
+            error_message = ''
+            raise TypeError(error_message)
+
+        # base64解碼
         enc_data = base64.b64decode(enc_data)
-        enc_data = enc_data.decode()
-        enc_data_list = enc_data.split('$')
-        data = '0b'
-        for ele in enc_data_list:
-            c_0, c_1 = ele.split('#')
 
-            c_0 = IntMatrix.str_to_matrix(c_0)
-            c_1 = int(c_1)
-            
-            u_prime = (c_1 - ((sk.trans * c_0).IntMatrix)[0][0]) % q
-            #print(u_prime, sep=' ')  # 檢查sigma是否太大
+        # 分割hash value
+        hash_value = enc_data[:32]
+        cipher_text = enc_data[32:]
 
-            if abs(u_prime - half_q) < qutr_q:
-                data += '1'
-            else:
-                data += '0'
+        # 密文前處理
+        cipher_text = cipher_text.decode()
+        enc_data_list = cipher_text.split('$')
+
+        # 解密區塊
+        try:
+            data = '0b'
+            for ele in enc_data_list:
+                c_0, c_1 = ele.split('#')
+
+                c_0 = IntMatrix.str_to_matrix(c_0)
+                c_1 = int(c_1)
+                
+                u_prime = (c_1 - ((sk.trans * c_0).IntMatrix)[0][0]) % q
+                #print(u_prime, sep=' ')  # 檢查sigma是否太大
+
+                if abs(u_prime - half_q) < qutr_q:
+                    data += '1'
+                else:
+                    data += '0'
+            data = Converter.binary_to_bytes(data)
+        except:
+            error_message = 'Decryption failed.'
+            raise DecryptionError(error_message)
+
+        # 資料檢查
+        hash_value = Converter.bytes_to_hex(hash_value)[2:]
+        if hash_value != hashlib.sha256(data).hexdigest():
+            error_message = 'Decryption failed. Not using the correct private key.'
+            raise DecryptionError(error_message)
         
-        return Converter.binary_to_bytes(data)
+        return data
 
 
             

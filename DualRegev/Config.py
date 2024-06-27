@@ -10,7 +10,7 @@ class MultiprocEnv():
     def __init__(self) -> None:
         self.is_multiproc = False
         self.ENV_CPU_COUNT = multiprocessing.cpu_count()
-        self.__used_cpu_count = 1
+        self.__used_cpu_count = 2
 
 
     def get_used_cpu(self) -> int:
@@ -56,3 +56,8 @@ class config:
 
     def set_parameter(n: int, m: int , q: int, rng: tuple=None) -> None:
         config.cryptParameter = CryptParameter(n, m, q, rng)
+
+
+
+# default
+config.set_parameter(n=256, m=512, q=16349)
