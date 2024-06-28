@@ -23,7 +23,7 @@ from  DualRegev.Config  import  config
 
 ```python
 # 設定安全參數
-config.set_parameter(n=90, m=100, q=241)
+config.set_parameter(n=128, m=256, q=16349)
 
 # 生成公鑰、私鑰
 key_obj  =  Crypto.LBDRKey().generate_key()
