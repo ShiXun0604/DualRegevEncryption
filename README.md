@@ -2,6 +2,7 @@
 ##  簡介
 * 此repository實現Craig Gentry等人提出的非對稱式加密演算法，此演算法的安全性為基於lattice base的困難問題，可以抵抗量子電腦破密攻擊。演算法詳細過程請見[此篇論文](https://eprint.iacr.org/2007/432)的7-1小節。  
 * 由於基於lattice base的演算法有運算成本非常高的通病（因為有相當多的矩陣乘法），實務上請務必搭配其他高效演算法(例如AES128、AES256)使用。
+* 此package會拿你電腦一半的CPU進行multiprocessing。
 * library中所有矩陣乘法通通沒有用numpy，所以效率很差哦@@。
 
 ## 注意事項
