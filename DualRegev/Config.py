@@ -1,5 +1,5 @@
 import multiprocessing
-
+from DualRegev.IO import Error
 
 
 __all__ = ['MultiprocEnv', 'CryptParameter', 'config']
@@ -59,4 +59,11 @@ class config:
     cryptParameter = CryptParameter(n=128, m=256, q=16349)
 
     def set_parameter(n: int, m: int , q: int, rng: tuple=None) -> None:
+        if not isinstance(n, int) or not isinstance(m, int) or not isinstance(q, int):
+            error_message = 'Invalid data type input.'
+            raise TypeError(error_message)
+        if n > m:
+            error_message = 'm must larger than n.'
+            raise Error.ParameterValueError(error_message)
+
         config.cryptParameter = CryptParameter(n, m, q, rng)

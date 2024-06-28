@@ -59,9 +59,6 @@ class LBDRKey():
     def para(self) -> CryptParameter:
         return config.cryptParameter
     
-    @para.setter
-    def para(self, data):
-        config.cryptParameter = data
     
     # 回傳私鑰
     def get_private_key(self) -> IntMatrix:
@@ -162,7 +159,7 @@ class LBDRKey():
 
         # 參數
         n, m, q, rng_1, rng_2 = str_para.split(' ')
-        self.para = CryptParameter(int(n), int(m), int(q), (int(rng_1), int(rng_2)))
+        config.set_parameter(int(n), int(m), int(q), (int(rng_1), int(rng_2)))
         
         # 私鑰
         if len(data_list) == 4:

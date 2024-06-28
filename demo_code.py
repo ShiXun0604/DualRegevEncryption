@@ -81,7 +81,7 @@ def decryption_demo() -> str:
 if __name__ == '__main__':
     data = '0x38d0dca40e3e6adce900d2698c8da8e45264b4de5937c236'
 
-    #key_generation_demo()
+    key_generation_demo()
     encryption_demo(data)
     dec_data = decryption_demo()
     print(data == dec_data)

@@ -28,6 +28,12 @@ class DecryptionError(Exception):
         super().__init__(*args)
 
 
+# 參數錯誤
+class ParameterValueError(Exception):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+        
 
 def error_catcher(Error: Exception, error_message: str):
     def decorater(func):
